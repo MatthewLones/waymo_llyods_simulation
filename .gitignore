@@ -1,0 +1,36 @@
+# MATLAB autosave and backup files
+*.asv
+*.m~ 
+*.bak
+
+# Compiled MEX files (platform-specific binaries)
+*.mex*
+*.dll
+*.so
+*.dylib
+
+# Data and cache files
+*.mat
+*.log
+*.out
+
+# Simulink and Stateflow generated code
+slprj/
+sccprj/
+work/
+codegen/
+
+# MATLAB project files and local settings
+*.prj
+*.mlproj
+*.mldatx
+*.mlx.autosave
+resources/
+.metadata/
+.DS_Store
+
+# IDE and OS junk
+*.swp
+*~
+Thumbs.db
+.DS_Store
