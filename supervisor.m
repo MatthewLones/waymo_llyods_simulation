@@ -7,12 +7,10 @@ function supervisor()
     Nx  = 20;    % grid in x
     Ny  = 16;    % grid in y
     h   = 1.0;   % spacing
-    T   = 50;    % number of time steps to simulate
+    T   = 15;    % number of time steps to simulate
 
     % ---- Static setup ---------------------------------------------------
     [G, XY, agentNode] = setupLloyd(n, Nx, Ny, h);
-
-    figure;
 
     % ---- Time loop ------------------------------------------------------
     for t = 0:T
@@ -20,12 +18,12 @@ function supervisor()
         D = demandMap(XY, t);
 
         % 2) Lloyd "one-step" update using this D and static G
-        owner        = voronoiRegions(G, agentNode, n);
+        owner        = voronoiRegions(G, agentNode, n);   % Voronoi labels
         C            = centroidCalculator(owner, D, XY, n);
         agentNodeNew = moveAgents(C, XY, n);
 
-        % 3) Plot current state
-        plotState(G, D, XY, agentNodeNew, t);
+        % 3) Plot all pieces side by side
+        plotDiagnostics(G, D, XY, agentNode, owner, C, agentNodeNew, t);
 
         % 4) Update positions for next time step
         agentNode = agentNodeNew;
