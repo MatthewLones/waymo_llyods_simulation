@@ -1,46 +1,44 @@
 function supervisor()
-%SUPERVISOR  Run discrete Lloyd iterations on a grid and plot.
+%SUPERVISOR  Time-stepped Lloyd's algorithm on a grid graph with traffic.
 
     % ---- Parameters -----------------------------------------------------
-    n       = 10;    % number of agents
-    Nx      = 30;   % grid size along x
-    Ny      = 16;   % grid size along y
-    h       = 1.0;  % spacing
-    maxIter = 30;   % safety cap on iterations
+    n        = 4;     % number of agents
+    Nx       = 20;    % grid in x
+    Ny       = 16;    % grid in y
+    h        = 1.0;   % spacing
+    T        = 50;    % number of time steps in simulation
 
-    % ---- Setup ----------------------------------------------------------
-    [D, P, X, Y] = setupLloyd(n, Nx, Ny, h);
+    % ---- Setup (static pieces) ------------------------------------------
+    [G, XY, agentNode] = setupLloyd(n, Nx, Ny, h);
+
+    % Keep an original copy of G to reuse structure; weights change each step.
+    baseG = G;
 
     figure;
 
-    % Initial plot
-    plotState(D, P, X, Y, 0);
+    % ---- Time loop ------------------------------------------------------
+    for t = 0:T
+        % 1) Update demand based on time
+        D = demandMap(XY, t);
 
-    % ---- Lloyd iterations -----------------------------------------------
-    for iter = 1:maxIter
-        % 1) Build Voronoi regions
-        R = voronoiRegions(P, n);
+        % 2) Update traffic (edge weights) based on time
+        w_t = trafficMap(baseG, XY, t);
+        G.Edges.Weight = w_t;
 
-        % 2) Compute density-weighted centroids
-        C = centroidCalculator(R, D, X, Y, n);
+        % 3) Lloyd "one-step" update at this time
+        % 3a) Graph Voronoi partition using current weights
+        owner = voronoiRegions(G, agentNode, n);
 
-        % 3) Move agents to nearest nodes
-        P_new = moveAgents(C, X, Y, n);
+        % 3b) Centroids of each region (in Euclidean XY space)
+        C = centroidCalculator(owner, D, XY, n);
 
-        % 4) Plot state
-        plotState(D, P_new, X, Y, iter);
+        % 3c) Move agents by snapping centroids to nearest nodes
+        agentNodeNew = moveAgents(C, XY, n);
 
-        % 5) Check convergence
-        if isequal(P_new, P)
-            fprintf('Converged at iteration %d.\n', iter);
-            P = P_new;
-            break;
-        end
+        % 4) Plot current state
+        plotState(G, D, XY, agentNodeNew, t);
 
-        P = P_new;
-    end
-
-    if ~isequal(P_new, P)
-        fprintf('Reached maxIter = %d without full convergence.\n', maxIter);
+        % 5) Update agent positions for next time step
+        agentNode = agentNodeNew;
     end
 end

@@ -1,46 +1,26 @@
-function [D, P, X, Y] = setupLloyd(n, Nx, Ny, h)
-%SETUPLLOYD  Build a rectangular grid, a density field, and initial agents.
+function [G, XY, agentNode] = setupLloyd(n, Nx, Ny, h)
+%SETUPLLOYD  Setup Lloyd's algorithm on a grid-graph (time-varying demand).
 %
 % Inputs
-%   n   - number of agents (cars)
-%   Nx  - number of intersections along x (columns)
-%   Ny  - number of intersections along y (rows)
-%   h   - spacing between intersections (in whatever units)
+%   n   - number of agents
+%   Nx  - # intersections along x (columns)
+%   Ny  - # intersections along y (rows)
+%   h   - spacing
 %
 % Outputs
-%   D   - Ny x Nx matrix, D(i,j) = density at node (i,j)
-%   P   - Ny x Nx matrix, P(i,j) = 0 if empty, k if agent k is at (i,j)
-%   X   - Ny x Nx matrix of x-coordinates of each node
-%   Y   - Ny x Nx matrix of y-coordinates of each node
+%   G         - graph object (with base weights)
+%   XY        - N x 2 node coordinates
+%   agentNode - n x 1 vector; agentNode(k) is node index of agent k
 
-    % ---- 1) Build coordinate grids --------------------------------------
-    % xCoords is a row vector of x positions of columns
-    % yCoords is a column vector of y positions of rows
-    xCoords = (0:Nx-1) * h;
-    yCoords = (0:Ny-1) * h;
-    [X, Y] = meshgrid(xCoords, yCoords);   % X,Y are Ny x Nx
+    % 1) Build grid graph
+    [G, XY] = buildGridGraph(Nx, Ny, h);
+    N = numnodes(G);
 
-    % ---- 2) Build density field D ---------------------------------------
-    % For now we call a helper that takes coordinates and returns D.
-    % This is where we can later add time-dependence: demandMap(X,Y,t).
-    D = demandMap(X, Y);
-
-    % ---- 3) Place agents randomly on distinct nodes ---------------------
-    numCells = Ny * Nx;
-    if n > numCells
-        error('Number of agents n=%d is larger than number of grid cells=%d', ...
-              n, numCells);
+    % 2) Place agents randomly on distinct nodes
+    if n > N
+        error('n = %d agents > N = %d nodes in graph.', n, N);
     end
 
-    % P(i,j) = 0 means no agent; P(i,j) = k means agent k is there
-    P = zeros(Ny, Nx);
-
-    % Choose n distinct cells uniformly at random
-    % linIdx(k) is a linear index into the Ny-by-Nx grid
-    linIdx = randperm(numCells, n);
-
-    for k = 1:n
-        [i, j] = ind2sub([Ny, Nx], linIdx(k));
-        P(i, j) = k;
-    end
+    perm = randperm(N, n);
+    agentNode = perm(:);   % column vector of node indices
 end

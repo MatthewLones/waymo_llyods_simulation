@@ -1,39 +1,32 @@
-function C = centroidCalculator(R, D, X, Y, n)
-%CENTROIDCALCULATOR  Density-weighted centroids for each Voronoi region.
+function C = centroidCalculator(owner, D, XY, n)
+%CENTROIDCALCULATOR  Density-weighted centroids for each Voronoi cell.
 %
 % Inputs
-%   R - Ny x Nx matrix of region labels, R(i,j) = k
-%   D - Ny x Nx density matrix
-%   X - Ny x Nx x-coordinate matrix
-%   Y - Ny x Nx y-coordinate matrix
-%   n - number of agents
+%   owner - N x 1 vector, owner(v) in {1,...,n}
+%   D     - N x 1 density vector
+%   XY    - N x 2 coordinates of nodes
+%   n     - number of agents
 %
 % Output
-%   C - n x 2 matrix of centroids; C(k,:) = [cx_k, cy_k]
+%   C     - n x 2 matrix; C(k,:) = [cx_k, cy_k]
 
     C = zeros(n, 2);
 
     for k = 1:n
-        mask = (R == k);        % logical Ny x Nx
-        w = D(mask);            % density weights in region k
+        mask = (owner == k);    % logical N x 1
 
+        w = D(mask);
         if isempty(w)
-            % Region has no cells (should not happen if grid is full).
-            % As a fallback, return NaN and handle in moveAgents if needed.
+            % No nodes in this region; should be rare
             C(k,:) = [NaN, NaN];
             continue;
         end
 
-        % Extract coordinates in region k
-        xk = X(mask);
-        yk = Y(mask);
+        xy_k = XY(mask, :);     % (#nodes_in_region) x 2
+        Mk   = sum(w);          % total mass
 
-        Mk = sum(w);            % total mass in region k
-
-        % If density is strictly positive everywhere (as in our demandMap),
-        % Mk > 0 and this is safe.
-        cx = sum(w .* xk) / Mk;
-        cy = sum(w .* yk) / Mk;
+        cx = (w' * xy_k(:,1)) / Mk;
+        cy = (w' * xy_k(:,2)) / Mk;
 
         C(k,:) = [cx, cy];
     end
