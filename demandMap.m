@@ -11,33 +11,33 @@ function D = demandMap(XY, t)
     x = XY(:,1);
     y = XY(:,2);
 
-    % Base layout: two Gaussian hotspots like before
-    mu1 = [mean(x), mean(y)];
+    % Map centre
+    cx = mean(x);
+    cy = mean(y);
+
+    % Two Gaussian hotspots in space
+    mu1 = [cx, cy];   % "downtown"
     sigma1 = (max(x) - min(x)) / 4;
 
-    mu2 = [min(x) + 0.25*(max(x)-min(x)), min(y) + 0.7*(max(y)-min(y))];
+    mu2 = [min(x) + 0.25*(max(x)-min(x)), ...
+           min(y) + 0.7*(max(y)-min(y))];  % "nightlife district"
     sigma2 = (max(x) - min(x)) / 6;
 
     r1sq = (x - mu1(1)).^2 + (y - mu1(2)).^2;
     r2sq = (x - mu2(1)).^2 + (y - mu2(2)).^2;
 
-    % Static components
-    D1 = exp(-r1sq / (2*sigma1^2));   % "downtown"
-    D2 = exp(-r2sq / (2*sigma2^2));   % "entertainment district"
+    % Base shapes
+    D1 = exp(-r1sq / (2*sigma1^2));
+    D2 = exp(-r2sq / (2*sigma2^2));
 
-    % Simple time pattern:
-    % - D1 peaks at t ≡ 0 mod T1  (e.g. morning)
-    % - D2 peaks at t ≡ T1/2      (e.g. evening)
-    T1 = 24;                         % period in "time steps" (toy choice)
+    % Simple daily cycle: D1 strong early, D2 strong later
+    Tperiod = 24;   % interpret t modulo 24 as "hour of day"
 
-    w1 = 0.5 + 0.5 * cos(2*pi*(t      )/T1);   % in [0,1]
-    w2 = 0.5 + 0.5 * cos(2*pi*(t - T1/2)/T1);  % out of phase with w1
+    w1 = 0.5 + 0.5 * cos(2*pi*(t      )/Tperiod);   % peaks at t ≡ 0
+    w2 = 0.5 + 0.5 * cos(2*pi*(t - Tperiod/2)/Tperiod); % peaks at t ≡ 12
 
-    % Combine
-    D = 0.1 ...
-        + 1.0 * w1 .* D1 ...
-        + 0.8 * w2 .* D2;
+    D = 0.1 + 1.0 * w1 .* D1 + 0.8 * w2 .* D2;
 
-    % (Optional) normalize if you care about total mass:
+    % Optional: normalize total mass if you care
     % D = D / sum(D);
 end

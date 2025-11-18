@@ -1,5 +1,5 @@
 function [G, XY, agentNode] = setupLloyd(n, Nx, Ny, h)
-%SETUPLLOYD  Setup Lloyd's algorithm on a grid-graph (time-varying demand).
+%SETUPLLOYD  Setup Lloyd's algorithm on a simple grid graph.
 %
 % Inputs
 %   n   - number of agents
@@ -8,19 +8,19 @@ function [G, XY, agentNode] = setupLloyd(n, Nx, Ny, h)
 %   h   - spacing
 %
 % Outputs
-%   G         - graph object (with base weights)
+%   G         - graph object
 %   XY        - N x 2 node coordinates
 %   agentNode - n x 1 vector; agentNode(k) is node index of agent k
 
-    % 1) Build grid graph
+    % 1) Build grid graph with constant weights
     [G, XY] = buildGridGraph(Nx, Ny, h);
     N = numnodes(G);
 
-    % 2) Place agents randomly on distinct nodes
+    % 2) Randomly place agents on distinct nodes
     if n > N
         error('n = %d agents > N = %d nodes in graph.', n, N);
     end
 
     perm = randperm(N, n);
-    agentNode = perm(:);   % column vector of node indices
+    agentNode = perm(:);   % column vector
 end

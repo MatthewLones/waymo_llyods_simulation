@@ -1,58 +1,48 @@
 function [G, XY] = buildGridGraph(Nx, Ny, h)
-%BUILDGRIDGRAPH  Construct a Ny-by-Nx grid as a MATLAB graph.
+%BUILDGRIDGRAPH  Construct a simple Ny-by-Nx grid as a MATLAB graph.
 %
-% Nodes are intersections; edges connect 4-neighbours.
+% Nodes are intersections on an axis-aligned grid.
+% Edges connect 4-neighbours (up/down/left/right) with constant weight h.
 %
 % Inputs
-%   Nx  - # of nodes along x (columns)
-%   Ny  - # of nodes along y (rows)
+%   Nx  - # of intersections along x (columns)
+%   Ny  - # of intersections along y (rows)
 %   h   - spacing between intersections
 %
 % Outputs
-%   G   - graph object with N = Nx*Ny nodes
+%   G   - graph with N = Nx*Ny nodes and constant edge weights = h
 %   XY  - N x 2 matrix; XY(v,:) = [x_v, y_v] coordinates of node v
 
-    N = Nx * Ny;
-    XY = zeros(N, 2);
+    % Grid coordinates
+    [X, Y] = meshgrid(0:h:(Nx-1)*h, 0:h:(Ny-1)*h);  % Ny x Nx
+    XY = [X(:), Y(:)];                              % N x 2
 
-    % Map (i,j) -> node index v
-    % v = sub2ind([Ny, Nx], i, j)
-    for i = 1:Ny
-        for j = 1:Nx
-            v = sub2ind([Ny, Nx], i, j);
-            x = (j - 1) * h;
-            y = (i - 1) * h;
-            XY(v, :) = [x, y];
-        end
-    end
-
-    % Build edge lists for 4-neighbour grid (right and down)
+    % Build 4-neighbour edges
     s = [];
     t = [];
     w = [];
 
     for i = 1:Ny
         for j = 1:Nx
-            v = sub2ind([Ny, Nx], i, j);
+            u = sub2ind([Ny, Nx], i, j);
 
-            % Right neighbour (i, j+1)
+            % Right neighbour
             if j < Nx
-                vRight = sub2ind([Ny, Nx], i, j+1);
-                s(end+1,1) = v;
-                t(end+1,1) = vRight;
+                v = sub2ind([Ny, Nx], i, j+1);
+                s(end+1,1) = u;
+                t(end+1,1) = v;
                 w(end+1,1) = h;
             end
 
-            % Down neighbour (i+1, j)
+            % Down neighbour
             if i < Ny
-                vDown = sub2ind([Ny, Nx], i+1, j);
-                s(end+1,1) = v;
-                t(end+1,1) = vDown;
+                v = sub2ind([Ny, Nx], i+1, j);
+                s(end+1,1) = u;
+                t(end+1,1) = v;
                 w(end+1,1) = h;
             end
         end
     end
 
-    % Undirected graph; graph(s,t,w) treats edges as undirected
-    G = graph(s, t, w);
+    G = graph(s, t, w);   % undirected graph with constant weights
 end

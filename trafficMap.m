@@ -1,44 +1,45 @@
-function w_t = trafficMap(G, XY, t)
-%TRAFFICMAP  Time-varying edge weights (traffic) for graph G.
+function w_t = trafficMap(baseG, XY, t)
+%TRAFFICMAP  Time-varying edge weights (traffic) for graph baseG.
 %
 % Inputs
-%   G   - graph object with M edges
-%   XY  - N x 2 node coordinates
-%   t   - current time step
+%   baseG - graph object with Edges.BaseLen and Edges.RoadType
+%   XY    - N x 2 node coordinates
+%   t     - current time step
 %
 % Output
-%   w_t - M x 1 vector of edge weights (travel times) at time t
+%   w_t   - M x 1 vector of edge weights (travel times) at time t
 
-    E = G.Edges.EndNodes;  % M x 2, [u v] for each edge
-    M = size(E,1);
+    E = baseG.Edges;
+    endNodes = E.EndNodes;   % M x 2
+    u = endNodes(:,1);
+    v = endNodes(:,2);
+    baseLen  = E.BaseLen;    % M x 1
+    roadType = E.RoadType;   % M x 1, 1 = local, 2 = arterial
 
-    % Base lengths: Euclidean distance between endpoints
-    u = E(:,1);
-    v = E(:,2);
+    % --- 1) Spatial factor: congestion highest near "city centre" --------
+    xMid = (XY(u,1) + XY(v,1)) / 2;
+    yMid = (XY(u,2) + XY(v,2)) / 2;
 
-    dx = XY(u,1) - XY(v,1);
-    dy = XY(u,2) - XY(v,2);
-    baseLen = sqrt(dx.^2 + dy.^2);   % base spatial length
-
-    % Simple congestion model:
-    % - traffic factor depends on proximity to a hotspot and on time
-    x = (XY(u,1) + XY(v,1))/2;
-    y = (XY(u,2) + XY(v,2))/2;
-
-    % One "CBD" hotspot for traffic
-    muT = [mean(XY(:,1)), mean(XY(:,2))];
+    muT    = [mean(XY(:,1)), mean(XY(:,2))];
     sigmaT = (max(XY(:,1)) - min(XY(:,1))) / 3;
 
-    rTsq = (x - muT(1)).^2 + (y - muT(2)).^2;
-    spatialFactor = exp(-rTsq / (2*sigmaT^2));   % highest near centre
+    rTsq = (xMid - muT(1)).^2 + (yMid - muT(2)).^2;
+    spatialFactor = exp(-rTsq / (2*sigmaT^2));   % near centre → ~1, far → ~0
 
-    % Time-of-day pattern (e.g. two rush peaks per period)
-    T2 = 24;
-    timeFactor = 0.5 + 0.5 * cos(2*pi*(t)/T2);   % ∈ [0,1]
+    % --- 2) Time factor: simple daily cycle -------------------------------
+    Tperiod   = 24;
+    timeFactor = 0.5 + 0.5 * cos(2*pi*t / Tperiod);  % in [0,1]
 
-    % Combined congestion multiplier, e.g. 1 to 3
-    congestion = 1 + 2 * (spatialFactor .* timeFactor);
+    % --- 3) Combine with road type ---------------------------------------
+    % Locals: can get very congested
+    localCongestion    = 1 + 2.0 * spatialFactor .* timeFactor;
+    % Arterials: designed to handle flow better (less sensitive)
+    arterialCongestion = 1 + 0.7 * spatialFactor .* timeFactor;
 
-    % Final weights = base length * congestion
+    congestion = localCongestion;
+    isArterial = (roadType == 2);
+    congestion(isArterial) = arterialCongestion(isArterial);
+
+    % Final time-varying weights
     w_t = baseLen .* congestion;
 end
