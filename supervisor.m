@@ -23,7 +23,7 @@ function supervisor()
         agentNodeNew = moveAgents(C, XY, n);
 
         % 3) Plot all pieces side by side
-        plot(G, D, XY, agentNode, owner, C, agentNodeNew, t);
+        plotter(G, D, XY, agentNode, owner, C, agentNodeNew, t);
 
         % 4) Update positions for next time step
         agentNode = agentNodeNew;
