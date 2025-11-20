@@ -1,4 +1,4 @@
-function plotDiagnostics(G, D, XY, agentNodeOld, owner, C, agentNodeNew, t)
+function plotter(G, D, XY, agentNodeOld, owner, C, agentNodeNew, t)
 %PLOTDIAGNOSTICS  Show Lloyd iteration pieces in 3 separate windows.
 %
 % Fig 1: demand + current agents

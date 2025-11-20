@@ -3,7 +3,7 @@ function supervisor()
 % Demand varies with time; traffic (edge weights) is static.
 
     % ---- Parameters -----------------------------------------------------
-    n   = 4;     % number of agents
+    n   = 3;     % number of agents
     Nx  = 20;    % grid in x
     Ny  = 16;    % grid in y
     h   = 1.0;   % spacing
@@ -23,7 +23,7 @@ function supervisor()
         agentNodeNew = moveAgents(C, XY, n);
 
         % 3) Plot all pieces side by side
-        plotDiagnostics(G, D, XY, agentNode, owner, C, agentNodeNew, t);
+        plot(G, D, XY, agentNode, owner, C, agentNodeNew, t);
 
         % 4) Update positions for next time step
         agentNode = agentNodeNew;
