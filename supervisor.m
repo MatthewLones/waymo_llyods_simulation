@@ -3,8 +3,9 @@ function supervisor()
 %
 % Uses plotter_anim to build frames, then optionally saves to MP4.
 
+
     % ---- Parameters -----------------------------------------------------
-    n   = 4;      % number of agents
+    n   = 10;      % number of agents
     Nx  = 20;     % passed through to setupLloyd if needed
     Ny  = 16;
     h   = 1.0;
