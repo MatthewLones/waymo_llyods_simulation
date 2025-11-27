@@ -1,5 +1,5 @@
 function main()
-    n   = 10;      % number of agents
+    n   = 60;      % number of agents
     Nx  = 20;     % passed through to setupLloyd if needed; x and y dim for grid graph
     Ny  = 16;
     h   = 1.0;
