@@ -1,4 +1,4 @@
-#Llyods MATLAB Simulation for APSC 200
+# Llyods MATLAB Simulation for APSC 200
 uses llyods algorithm to distrbute "idle taxis" (agents) across a node-graph object to minimize user wait time
 
 rough code outline (in order of function calls):
