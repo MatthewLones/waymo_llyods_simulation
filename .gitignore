@@ -3,6 +3,7 @@ data/**
 
 #Keep the readme with downloading instructions
 !data/README.md
+!data/sample.png
 
 #Chat recomendations:
 # MATLAB autosave and backup files
