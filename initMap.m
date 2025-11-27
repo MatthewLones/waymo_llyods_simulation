@@ -1,4 +1,4 @@
-function [G, XY, agentNode] = initMap(n, Nx, Ny, h)
+function [G, XY, agentNode] = initMap(n, Nx, Ny, h, mapMode)
 %SETUPLLOYD  Setup Lloyd's algorithm on a simple grid graph.
 %
 % Inputs
@@ -14,8 +14,18 @@ function [G, XY, agentNode] = initMap(n, Nx, Ny, h)
 
     % 1) Build grid graph with constant weights
 
-    %[G, XY] = buildGridGraph(Nx, Ny, h);
-    [G, XY] = buildTorontoGraph('data/toronto/centreline.shp');
+    switch lower(string(mapMode))
+
+        case "grid"
+            [G, XY] = buildGridGraph(Nx, Ny, h);
+        
+        case "city"
+            [G, XY] = buildTorontoGraph('data/toronto/centreline.shp');
+
+        otherwise
+            error("Sepecify graph type! ")
+    end
+    
     N = numnodes(G);
 
     % 2) Randomly place agents on distinct nodes
@@ -26,3 +36,4 @@ function [G, XY, agentNode] = initMap(n, Nx, Ny, h)
     perm = randperm(N, n);
     agentNode = perm(:);   % column vector
 end
+

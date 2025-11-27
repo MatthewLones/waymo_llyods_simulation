@@ -1,4 +1,4 @@
-function supervisor()
+function main()
 %SUPERVISOR_ANIM  Lloyd iterations on (e.g.) Toronto graph, recorded offline.
 %
 % Uses plotter_anim to build frames, then optionally saves to MP4.
@@ -16,7 +16,7 @@ function supervisor()
 
     % ---- Static setup (this is where you swap grid vs Toronto) ---------
     % For Toronto, have setupLloyd call buildTorontoGraph instead of buildGridGraph
-    [G, XY, agentNode] = initMap(n, Nx, Ny, h);
+    [G, XY, agentNode] = initMap(n, Nx, Ny, h, "city");
 
     frames = {};   % cell array of frames
 
@@ -26,7 +26,7 @@ function supervisor()
         iterTimer = tic;
 
         % 1) Current demand
-        D = demandMap(XY, t);
+        D = demandMap(XY, t, "city");
 
         % 2) Lloyd "one-step" update
         owner        = voronoiRegions(G, agentNode, n);

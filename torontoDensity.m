@@ -1,4 +1,4 @@
-function D_base = buildBaseDemand_population(XY, neighShapefile, profileCsv)
+function D_base = torontoDensity(XY, neighShapefile, profileCsv)
 %BUILDBASEDEMAND_POPULATION  Static node demand based on neighbourhood population.
 %
 % Inputs
