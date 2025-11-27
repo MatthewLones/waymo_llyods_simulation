@@ -11,19 +11,5 @@ Rough code outline (in order of function calls):
 * `main`: runs everything, exports a .mp4 of the rendered simulation
 
 
-Fun improvements: use traffic data to assign weightings to each edge, turn into actual simulation with taxis picking up users, taking them to destinations, and idle taxis redistribution around where active cars will be
-
-<<<<<<< HEAD
-Screenshots of rendered vids:
-=======
-`centroidCalculator`: sums up the mass of each voroni region and computes their centroids (in R2)
-
-`moveAgents`: moves agents to the closest node to each centroid
-
-`plotter`: plots three graphs showing density, voroni assignments, and agents' next move
-
-`main`: runs everything
-
-
-*main improvement*: when working with toronto data set didn't have super deep understanding; was tight on time so had partly generative code for toronto map/density map; dont trust results some of it looks wrong/overcomplicated; when I have more time I'd like to dive deeper into this data and learn shapefile/datastuff more deeply since main focus of this project was learning MATLAB + Llyods
-fun improvements: use traffic data to assign weightings to each edge, turn into actual simulation with taxis picking up users, taking them to destinations, and idle taxis redistribution around where active cars will be
+*main future improvement*: when working with toronto data set didn't have super deep understanding; was tight on time so had partly generative code for toronto map/density map; dont trust results some of it looks wrong/overcomplicated; when I have more time I'd like to dive deeper into this data and learn shapefile/datastuff more deeply since main focus of this project was learning MATLAB + Llyods
+fun future improvements: use traffic data to assign weightings to each edge, turn into actual simulation with taxis picking up users, taking them to destinations, and idle taxis redistribution around where active cars will be
