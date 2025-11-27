@@ -1,13 +1,13 @@
 function D_base = torontoDensity(XY, neighShapefile, profileCsv)
-%BUILDBASEDEMAND_POPULATION  Static node demand based on neighbourhood population.
+%TORONTODENSITY  Static node demand based on neighbourhood *density*.
 %
 % Inputs
 %   XY             - N x 2 node coordinates [lon, lat]
 %   neighShapefile - path to Toronto neighbourhood polygons (.shp)
-%   profileCsv     - path to "neighbourhood-profiles-2021.csv"
+%   profileCsv     - path to "neighbourhood-profiles-2021.csv" (or .xlsx)
 %
 % Output
-%   D_base         - N x 1 base demand (proportional to population)
+%   D_base         - N x 1 base demand (proportional to population density)
 
     % ===============================================================
     % 1) Load neighbourhood polygons (struct array)
@@ -15,7 +15,7 @@ function D_base = torontoDensity(XY, neighShapefile, profileCsv)
     S = shaperead(neighShapefile);   % needs Mapping TB
 
     if isempty(S)
-        error('buildBaseDemand_population:EmptyShape', ...
+        error('torontoDensity:EmptyShape', ...
               'Shapefile "%s" returned no features.', neighShapefile);
     end
 
@@ -44,7 +44,7 @@ function D_base = torontoDensity(XY, neighShapefile, profileCsv)
         "Total - Age groups of the population", 'IgnoreCase', true), 1);
 
     if isempty(popRowIdx)
-        error('buildBaseDemand_population:NoPopRow', ...
+        error('torontoDensity:NoPopRow', ...
              ['Could not find "Total - Age groups of the population..." ', ...
               'row in profiles CSV.']);
     end
@@ -63,11 +63,12 @@ function D_base = torontoDensity(XY, neighShapefile, profileCsv)
     end
 
     % ===============================================================
-    % 3) Attach population to each polygon by matching cleaned names
+    % 3) Attach population and area to each polygon
     % ===============================================================
     nNeigh   = numel(S);
     polys    = polyshape.empty(nNeigh, 0);
     popNeigh = zeros(nNeigh, 1);
+    polyArea = zeros(nNeigh, 1);   % NEW: polygon areas
 
     for k = 1:nNeigh
         % -------- Geometry -> polyshape --------
@@ -78,7 +79,7 @@ function D_base = torontoDensity(XY, neighShapefile, profileCsv)
             lon = S(k).Lon;
             lat = S(k).Lat;
         else
-            error('buildBaseDemand_population:NoXY', ...
+            error('torontoDensity:NoXY', ...
                   'Shape struct has no X/Y or Lon/Lat fields.');
         end
 
@@ -87,7 +88,8 @@ function D_base = torontoDensity(XY, neighShapefile, profileCsv)
         lon  = lon(mask);
         lat  = lat(mask);
 
-        polys(k) = polyshape(lon, lat, 'Simplify', false);
+        polys(k)    = polyshape(lon, lat, 'Simplify', false);
+        polyArea(k) = area(polys(k));     % area in coordinate units^2
 
         % -------- Name -> key -> population --------
         key = char(shpKeys(k));
@@ -103,24 +105,29 @@ function D_base = torontoDensity(XY, neighShapefile, profileCsv)
     if any(~missing)
         popNeigh(missing) = mean(popNeigh(~missing));
     else
-        warning('All neighbourhood populations are zero; check CSV mapping.');
+        warning('torontoDensity:AllZeroPop', ...
+                'All neighbourhood populations are zero; check CSV mapping.');
     end
 
     % ===============================================================
-    % 4) Paint population mass onto XY nodes
+    % 4) Paint population density onto XY nodes
     % ===============================================================
     N      = size(XY, 1);
     D_base = zeros(N, 1);
 
     for k = 1:nNeigh
         if popNeigh(k) <= 0, continue; end
+        if polyArea(k) <= 0, continue; end
 
         in = isinterior(polys(k), XY(:,1), XY(:,2));  % logical N x 1
-        Nk = sum(in);
-        if Nk == 0, continue; end
+        if ~any(in), continue; end
 
-        massPerNode = popNeigh(k) / Nk;
-        D_base(in)  = massPerNode;
+        % Population density for this neighbourhood:
+        % people per (coordinate-unit)^2
+        dens_k = popNeigh(k) / polyArea(k);
+
+        % Assign same density to all nodes in this neighbourhood
+        D_base(in) = dens_k;
     end
 
     % Nodes not in any neighbourhood get a tiny baseline
@@ -129,8 +136,17 @@ function D_base = torontoDensity(XY, neighShapefile, profileCsv)
         D_base(zeroNodes) = 0.1 * mean(D_base(~zeroNodes));
     end
 
-    % Normalise to [0, 1] for convenience
-    D_base = D_base ./ max(D_base);
+    % ===============================================================
+    % 5) Normalise for use as a demand distribution
+    % ===============================================================
+    s = sum(D_base);
+    if s > 0
+        D_base = D_base / s;   % sum(D_base) = 1
+    else
+        warning('torontoDensity:ZeroMass', ...
+                'Total mass is zero; using uniform density.');
+        D_base = ones(N,1) / N;
+    end
 end
 
 % =====================================================================
@@ -180,7 +196,7 @@ function nameField = pickNameFieldFromStruct(S)
 
     [mx, idx] = max(scores);
     if mx == 0
-        error('buildBaseDemand_population:NoNameField', ...
+        error('torontoDensity:NoNameField', ...
               'Could not find a text-like name/ID field in neighbourhood shapefile.');
     end
 

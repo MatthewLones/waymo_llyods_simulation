@@ -1,5 +1,5 @@
 function frame = plotter(G, D, XY, agentNodeOld, owner, C, agentNodeNew, t)
-%PLOTTER_ANIM  Draw 3 diagnostic panels in one invisible figure & return frame.
+% Draw 3  panels in one invisible figure & return frame.
 
     % Unpack
     n = numel(agentNodeOld);
@@ -12,7 +12,7 @@ function frame = plotter(G, D, XY, agentNodeOld, owner, C, agentNodeNew, t)
     yMin = min(XY(:,2)); 
     yMax = max(XY(:,2));
 
-    % Precompute edge geometry ONCE (persistent)
+    % Precompute edge geometry once (persistent)
     persistent fig tl xe ye ax1 ax2 ax3
     if isempty(fig) || ~isvalid(fig)
         fig = figure('Visible','off', ...
